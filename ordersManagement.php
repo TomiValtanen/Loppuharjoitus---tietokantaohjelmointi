@@ -35,7 +35,7 @@ $db = createSqliteConnection("./bikestore.db");
 try {
     $db->beginTransaction();
 
-    orderManagement($orderState_sani,$orderNumber,$db);
+    orderManagement($orderState_sani, $orderNumber, $db);
 
     $db->commit();
     http_response_code(200);

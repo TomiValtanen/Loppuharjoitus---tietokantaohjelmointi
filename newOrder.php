@@ -18,29 +18,28 @@ if (!isset($order->tilauspvm) || !isset($order->summa) || !isset($order->tuottee
     echo "Tilaustiedoissa on puutteita.";
     return;
 }
-if(checkTuotteet($order)===false){
+if (checkTuotteet($order) === false) {
     http_response_code(400);
     echo "Tilaustiedoissa on puutteita.";
     return;
 }
 
-$orderDate=filter_var(preg_replace("([^0-9/] | [^0-9-])","",htmlentities($order->tilauspvm)));
-$orderTotal=filter_var($order->summa,FILTER_SANITIZE_NUMBER_INT);
+$orderDate = filter_var(preg_replace("([^0-9/] | [^0-9-])", "", htmlentities($order->tilauspvm)));
+$orderTotal = filter_var($order->summa, FILTER_SANITIZE_NUMBER_INT);
 
 $db = createSqliteConnection("./bikestore.db");
-try{
-   
+try {
+
     $db->beginTransaction();
 
-    $id=userId($_SESSION['username'],$db);
-    
-    $last_insert_id=newOrder($id,$orderDate,$orderTotal,$db);
-    
-    addNewOrderLines($order,$last_insert_id,$db);
-     $db->commit();
+    $id = userId($_SESSION['username'], $db);
+
+    $last_insert_id = newOrder($id, $orderDate, $orderTotal, $db);
+
+    addNewOrderLines($order, $last_insert_id, $db);
+    $db->commit();
     echo "Tilauksesi on vastaanotettu.";
-}catch(Exception $e){
+} catch (Exception $e) {
     $db->rollBack();
     echo "Jotain meni vikaan. " . $e->getMessage();
 }
-
