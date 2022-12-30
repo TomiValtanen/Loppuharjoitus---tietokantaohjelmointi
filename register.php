@@ -1,22 +1,10 @@
 <?php
 require("./inc/headers.php");
 session_start();
-require("./dbConnection.php");
+require("./userControl.php");
 require("./inc/functions.php");
 
-//SIIRRÄ TÄMÄKIN JONNEKKIN KAUAS
-function checkEmail($userEmail){
 
-$db=createSqliteConnection("./bikestore.db");
-$sql="SELECT sposti FROM asiakas WHERE sposti=?";
-$statement=$db->prepare($sql);
-$statement->bindParam(1,$userEmail,PDO::PARAM_STR);
-$statement->execute();
-$email=$statement->fetchColumn();
-
-return $email===$userEmail ? true : false;
-}
-// JUURIKIN TÄMÄ
 
 $body= file_get_contents("php://input");
 $user=json_decode($body);
@@ -51,25 +39,13 @@ if(checkEmail($userEmail)===true){
     echo "Kyseisellä sähköpostilla on käyttäjä luotu.";
     return;
 }
+try{
+    newUser($userEmail,$user->userPw,$userFname_sani,$userLname_sani,$userAdress_sani,$userCity_sani,$userZip_sani,$userPhone_sani);
 
-//Tästä vois laittaa functioon ja sieltä kutsua "Alkaa"
-$db=createSqliteConnection("./bikestore.db");
-
-$pw=password_hash($user->userPw,PASSWORD_DEFAULT);
-
-$sql="INSERT INTO asiakas (sposti,salasana,etunimi,sukunimi,osoite,postinro,Postitmp,puhnro) values (?,?,?,?,?,?,?,?)";
-$statement=$db->prepare($sql);
-$statement->bindParam(1,$userEmail,PDO::PARAM_STR);
-$statement->bindParam(2,$pw);
-$statement->bindParam(3,$userFname,PDO::PARAM_STR);
-$statement->bindParam(4,$userLname,PDO::PARAM_STR);
-$statement->bindParam(5,$userAdress,PDO::PARAM_STR);
-$statement->bindParam(6,$userZip,PDO::PARAM_STR);
-$statement->bindParam(7,$userCity,PDO::PARAM_STR);
-$statement->bindParam(8,$userPhone,PDO::PARAM_STR);
-$statement->execute();
-//"Loppuuu"
-$_SESSION['username'] = $user->userTag;
-
-http_response_code(200);
-echo "Käyttäjän ".$user->userTag." rekisteröinti onnistui.";
+    $_SESSION['username'] = $user->userTag;
+    
+    http_response_code(200);
+    echo "Käyttäjän ".$user->userTag." rekisteröinti onnistui.";
+}catch(PDOException $pdoex) {
+    returnError($pdoex);
+}
